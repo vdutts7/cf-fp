@@ -96,40 +96,40 @@ function ResultsDashboard() {
         title: 'Basic Information',
         icon: <User className="h-5 w-5 text-muted-foreground" />,
         data: [
-          { key: 'User Agent', value: userAgent.value },
-          { key: 'Platform', value: platform.value },
+          { key: 'User Agent', value: userAgent?.value },
+          { key: 'Platform', value: platform?.value },
         ],
       },
       {
         title: 'Display',
         icon: <Monitor className="h-5 w-5 text-muted-foreground" />,
         data: [
-          { key: 'Resolution', value: `${screenResolution.value[0]}x${screenResolution.value[1]}` },
-          { key: 'Color Depth', value: `${colorDepth.value} bit` },
+          { key: 'Resolution', value: screenResolution?.value ? `${screenResolution.value[0]}x${screenResolution.value[1]}` : 'N/A' },
+          { key: 'Color Depth', value: colorDepth?.value ? `${colorDepth.value} bit` : 'N/A' },
         ],
       },
       {
         title: 'Hardware',
         icon: <Cpu className="h-5 w-5 text-muted-foreground" />,
         data: [
-          { key: 'CPU Cores', value: hardwareConcurrency.value },
-          { key: 'Device Memory', value: `${deviceMemory.value} GB` },
+          { key: 'CPU Cores', value: hardwareConcurrency?.value ?? 'N/A' },
+          { key: 'Device Memory', value: deviceMemory?.value ? `${deviceMemory.value} GB` : 'N/A' },
         ],
       },
       {
         title: 'Localization',
         icon: <Globe className="h-5 w-5 text-muted-foreground" />,
         data: [
-          { key: 'Timezone', value: timezone.value },
-          { key: 'Languages', value: languages.value.join(', ') },
+          { key: 'Timezone', value: timezone?.value },
+          { key: 'Languages', value: languages?.value?.join(', ') },
         ],
       },
       {
         title: 'Canvas Fingerprint',
         icon: <Palette className="h-5 w-5 text-muted-foreground" />,
         data: [
-          { key: 'Geometry', value: fingerprintData.canvas.value.geometry.substring(0, 40) + '...' },
-          { key: 'Text', value: fingerprintData.canvas.value.text.substring(0, 40) + '...' },
+          { key: 'Geometry', value: fingerprintData.canvas?.value?.geometry?.substring(0, 40) + '...' },
+          { key: 'Text', value: fingerprintData.canvas?.value?.text?.substring(0, 40) + '...' },
         ],
       },
     ];
