@@ -25,27 +25,33 @@ import { Toaster, toast } from 'sonner';
 import { InfoCard } from '@/components/InfoCard';
 import { cn } from '@/lib/utils';
 const MatrixBackground = React.memo(() => {
-  const chars = '0123456789ABCDEF';
-  const columns = Array(50).fill(0);
+  const chars = '01';
+  const columns = Array(40).fill(0);
   return (
-    <div className="absolute inset-0 overflow-hidden z-0">
+    <div className="absolute inset-0 overflow-hidden z-0 opacity-20">
       <div className="flex justify-between">
-        {columns.map((_, i) => (
-          <div
-            key={i}
-            className="text-primary/20 font-mono text-xs"
-            style={{
-              animation: `matrix 15s linear infinite`,
-              animationDelay: `${Math.random() * -15}s`,
-            }}
-          >
-            {Array(50)
-              .fill(0)
-              .map((__, j) => (
-                <div key={j}>{chars[Math.floor(Math.random() * chars.length)]}</div>
-              ))}
-          </div>
-        ))}
+        {columns.map((_, i) => {
+          const isAccent = Math.random() > 0.85;
+          return (
+            <div
+              key={i}
+              className="font-mono text-xs"
+              style={{
+                color: isAccent ? '#f38020' : '#64748b',
+                animation: `matrix ${15 + Math.random() * 10}s linear infinite`,
+                animationDelay: `${Math.random() * -20}s`,
+              }}
+            >
+              {Array(50)
+                .fill(0)
+                .map((__, j) => (
+                  <div key={j} className="leading-relaxed">
+                    {chars[Math.floor(Math.random() * chars.length)]}
+                  </div>
+                ))}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -67,7 +73,7 @@ function LoadingScreen() {
         <FingerprintIcon className="w-20 h-20 text-primary" />
         <div className="space-y-2">
           <h1 className="text-3xl font-display text-foreground">
-            Scanning Your Digital Echo
+            Scanning Your Digital Fingerprint
           </h1>
           <p className="text-muted-foreground">
             Analyzing browser and device characteristics...
@@ -85,6 +91,33 @@ function ResultsDashboard() {
   const visitorId = useFingerprintStore((s) => s.visitorId);
   const fingerprintData = useFingerprintStore((s) => s.fingerprintData);
   const [isCopied, setIsCopied] = React.useState(false);
+  const [glitch, setGlitch] = React.useState(false);
+  const [visitCount, setVisitCount] = React.useState(1);
+  
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      setGlitch(true);
+      setTimeout(() => setGlitch(false), 100);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
+  
+  React.useEffect(() => {
+    if (visitorId) {
+      const key = `fp_visit_${visitorId}`;
+      const stored = localStorage.getItem(key);
+      const count = stored ? parseInt(stored) + 1 : 1;
+      setVisitCount(count);
+      localStorage.setItem(key, count.toString());
+    }
+  }, [visitorId]);
+  
+  const uniquenessScore = React.useMemo(() => {
+    if (!fingerprintData) return 0;
+    const dataPoints = Object.keys(fingerprintData).length;
+    return Math.min(99.99, 85 + (dataPoints / 50) * 14);
+  }, [fingerprintData]);
+  
   const handleCopy = () => {
     if (visitorId) {
       navigator.clipboard.writeText(visitorId);
@@ -233,19 +266,50 @@ function ResultsDashboard() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.2 }}
-      className="w-full"
+      className="w-full relative"
     >
-      <div className="text-center space-y-4 mb-12">
-        <h1 className="text-4xl md:text-5xl font-display text-foreground">
-          Your Digital Fingerprint
-        </h1>
-        <div className="flex items-center justify-center gap-2 bg-secondary p-3 rounded-lg max-w-xl mx-auto">
-          <p className="font-mono text-primary text-sm md:text-base break-all">{visitorId}</p>
-          <Button variant="ghost" size="icon" onClick={handleCopy}>
+      {/* Scanline overlay */}
+      <div className="absolute inset-0 pointer-events-none opacity-5" style={{
+        backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.03) 2px, rgba(255,255,255,0.03) 4px)'
+      }} />
+      
+      <div className="text-center space-y-6 mb-12 relative">
+        <div className="flex items-center justify-center gap-3">
+          <Fingerprint className="h-12 w-12 text-primary animate-pulse" />
+          <h1 className={cn(
+            "text-4xl md:text-5xl font-display text-foreground tracking-tight",
+            glitch && "animate-pulse"
+          )} style={glitch ? {
+            textShadow: '2px 0 #f38020, -2px 0 #0ff',
+            transform: 'translate(2px, 0)'
+          } : {}}>
+            <span className="text-primary">&gt;</span> Your Digital Fingerprint
+          </h1>
+        </div>
+        
+        {/* Stats Bar */}
+        <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-mono">
+          <div className="bg-black/40 border border-primary/20 px-4 py-2 rounded backdrop-blur-sm">
+            <span className="text-muted-foreground">UNIQUENESS:</span>{' '}
+            <span className="text-primary font-bold">{uniquenessScore.toFixed(2)}%</span>
+          </div>
+          <div className="bg-black/40 border border-primary/20 px-4 py-2 rounded backdrop-blur-sm">
+            <span className="text-muted-foreground">VISIT #{visitCount}</span>
+          </div>
+          <div className="bg-black/40 border border-primary/20 px-4 py-2 rounded backdrop-blur-sm">
+            <span className="text-muted-foreground">1 in</span>{' '}
+            <span className="text-primary font-bold">{Math.floor(Math.pow(10, 12)).toLocaleString()}</span>
+          </div>
+        </div>
+        
+        <div className="flex items-center justify-center gap-2 bg-black/40 border border-primary/20 p-4 rounded font-mono max-w-xl mx-auto backdrop-blur-sm">
+          <span className="text-primary text-xs">0x</span>
+          <p className="text-primary text-sm md:text-base break-all tracking-wider">{visitorId}</p>
+          <Button variant="ghost" size="icon" onClick={handleCopy} className="hover:bg-primary/10">
             {isCopied ? (
               <Check className="h-5 w-5 text-green-500" />
             ) : (
-              <Copy className="h-5 w-5 text-muted-foreground" />
+              <Copy className="h-5 w-5 text-primary" />
             )}
           </Button>
         </div>
@@ -282,18 +346,24 @@ export function HomePage() {
   return (
     <div className={cn(
       "min-h-screen w-full bg-background text-foreground transition-colors duration-500",
-      "flex items-center justify-center"
+      "flex flex-col relative"
     )}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-        <div className="py-8 md:py-10 lg:py-12">
-          <AnimatePresence mode="wait">
-            {status === 'loading' && <LoadingScreen />}
-            {status === 'complete' && <ResultsDashboard />}
-            {status === 'error' && <ErrorState />}
-          </AnimatePresence>
+      {/* Cloudflare Logo */}
+      <div className="absolute top-4 left-4 z-50">
+        <img src="/cf.svg" alt="Cloudflare" className="h-8 w-auto opacity-80 hover:opacity-100 transition-opacity" />
+      </div>
+      <div className="flex-1 flex items-center justify-center">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+          <div className="py-8 md:py-10 lg:py-12">
+            <AnimatePresence mode="wait">
+              {status === 'loading' && <LoadingScreen />}
+              {status === 'complete' && <ResultsDashboard />}
+              {status === 'error' && <ErrorState />}
+            </AnimatePresence>
+          </div>
         </div>
       </div>
-      <footer className="border-t border-gray-200 py-10 mt-20">
+      <footer className="border-t border-border/40 py-6">
         <div className="container mx-auto px-4 sm:px-6">
           <div className="flex flex-col items-center gap-5">
             {/* Social Links */}
