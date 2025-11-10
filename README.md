@@ -1,7 +1,8 @@
-# Digital Echo: Advanced Browser Fingerprinting
+# Cloudflare Fingerprint
 
-A visually striking, single-page application that performs in-depth browser fingerprinting and displays the results in a clean, minimalist, dark-themed dashboard.
+Cloudflare vibeSDK fingerprints your browser
 
+[![Live Demo](https://img.shields.io/badge/demo-live-success)](https://v1-digital-echo-qdyv16sftvocsrl_qi62w.build-preview.cloudflare.dev/)
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/vdutts7/cf-fp)
 
 ## About The Project
@@ -19,6 +20,16 @@ The application presents a minimalist, dark-themed user interface inspired by mo
 -   **Responsive Design**: Flawless layout and functionality across all device sizes, from mobile to desktop.
 -   **Client-Side Processing**: All fingerprinting and data processing happen in the browser, ensuring user data is not stored or transmitted to a server.
 -   **Copy to Clipboard**: Easily copy the unique fingerprint hash with a single click.
+
+## 📸 Screenshot
+
+![App Screenshot](./public/og-image.png)
+
+## 🔗 Links
+
+- **Live Demo**: [https://v1-digital-echo-qdyv16sftvocsrl_qi62w.build-preview.cloudflare.dev/](https://v1-digital-echo-qdyv16sftvocsrl_qi62w.build-preview.cloudflare.dev/)
+- **GitHub**: [GitHub](https://github.com/vdutts7)
+- **Twitter**: [X](https://x.com/vdutts7)
 
 ## Technology Stack
 

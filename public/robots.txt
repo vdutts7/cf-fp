@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://v1-digital-echo-qdyv16sftvocsrl_qi62w.build-preview.cloudflare.dev/sitemap.xml

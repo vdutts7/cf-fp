@@ -14,6 +14,7 @@ import {
   Puzzle,
   Type,
   BadgeCheck,
+  Github,
 } from 'lucide-react';
 import { useFingerprint } from '@/hooks/useFingerprint';
 import { useFingerprintStore } from '@/store/fingerprintStore';
@@ -292,8 +293,30 @@ export function HomePage() {
           </AnimatePresence>
         </div>
       </div>
-      <footer className="absolute bottom-4 text-center text-xs text-muted-foreground/50">
-        <p>Built with ❤️ at Cloudflare</p>
+      <footer className="border-t border-gray-200 py-10 mt-20">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="flex flex-col items-center gap-5">
+            {/* Social Links */}
+            <div className="flex items-center gap-2">
+              <button
+                className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-all active:scale-95"
+                onClick={() => window.open('https://github.com/vdutts7', '_blank')}
+                aria-label="GitHub"
+              >
+                <Github className="h-5 w-5" />
+              </button>
+              <button
+                className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-all active:scale-95"
+                onClick={() => window.open('https://x.com/vdutts7', '_blank')}
+                aria-label="X (Twitter)"
+              >
+                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
       </footer>
       <Toaster richColors theme="dark" />
     </div>
