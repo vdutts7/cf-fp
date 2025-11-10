@@ -1,7 +1,7 @@
-import type { Confidence, VisitorData } from '@fingerprintjs/fingerprintjs';
-export type FingerprintData = VisitorData;
-export type FingerprintConfidence = Confidence;
+import type { GetResult } from '@fingerprintjs/fingerprintjs';
+export type FingerprintResult = GetResult;
+export type FingerprintData = GetResult['components'];
 export type InfoCardData = {
   key: string;
-  value: string | number | boolean | undefined;
+  value: string | number | boolean | undefined | null;
 }[];

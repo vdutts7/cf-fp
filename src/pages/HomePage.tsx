@@ -9,6 +9,11 @@ import {
   Palette,
   Cpu,
   Globe,
+  Fingerprint,
+  Database,
+  Puzzle,
+  Type,
+  BadgeCheck,
 } from 'lucide-react';
 import { useFingerprint } from '@/hooks/useFingerprint';
 import { useFingerprintStore } from '@/store/fingerprintStore';
@@ -18,7 +23,6 @@ import { Button } from '@/components/ui/button';
 import { Toaster, toast } from 'sonner';
 import { InfoCard } from '@/components/InfoCard';
 import { cn } from '@/lib/utils';
-import type { FingerprintData } from '@/lib/types';
 const MatrixBackground = React.memo(() => {
   const chars = '0123456789ABCDEF';
   const columns = Array(50).fill(0);
@@ -90,49 +94,136 @@ function ResultsDashboard() {
   };
   const cardData = useMemo(() => {
     if (!fingerprintData) return [];
-    const { userAgent, platform, screenResolution, colorDepth, deviceMemory, hardwareConcurrency, timezone, languages } = fingerprintData;
-    return [
-      {
-        title: 'Basic Information',
-        icon: <User className="h-5 w-5 text-muted-foreground" />,
+    const {
+      ip,
+      ipLocation,
+      confidence,
+      userAgent,
+      platform,
+      screenResolution,
+      colorDepth,
+      deviceMemory,
+      hardwareConcurrency,
+      timezone,
+      languages,
+      canvas,
+      webgl,
+      fonts,
+      plugins,
+      sessionStorage,
+      localStorage,
+      indexedDB,
+      openDatabase,
+      cookiesEnabled,
+    } = fingerprintData;
+    const cards = [];
+    if (confidence) {
+      cards.push({
+        title: 'Status',
+        icon: <BadgeCheck className="h-5 w-5 text-muted-foreground" />,
         data: [
-          { key: 'User Agent', value: userAgent?.value },
-          { key: 'Platform', value: platform?.value },
+          { key: 'Confidence Score', value: confidence.score },
+          { key: 'Comment', value: confidence.comment },
         ],
-      },
-      {
-        title: 'Display',
-        icon: <Monitor className="h-5 w-5 text-muted-foreground" />,
-        data: [
-          { key: 'Resolution', value: screenResolution?.value ? `${screenResolution.value[0]}x${screenResolution.value[1]}` : 'N/A' },
-          { key: 'Color Depth', value: colorDepth?.value ? `${colorDepth.value} bit` : 'N/A' },
-        ],
-      },
-      {
-        title: 'Hardware',
-        icon: <Cpu className="h-5 w-5 text-muted-foreground" />,
-        data: [
-          { key: 'CPU Cores', value: hardwareConcurrency?.value ?? 'N/A' },
-          { key: 'Device Memory', value: deviceMemory?.value ? `${deviceMemory.value} GB` : 'N/A' },
-        ],
-      },
-      {
-        title: 'Localization',
-        icon: <Globe className="h-5 w-5 text-muted-foreground" />,
-        data: [
-          { key: 'Timezone', value: timezone?.value },
-          { key: 'Languages', value: languages?.value?.join(', ') },
-        ],
-      },
-      {
+      });
+    }
+    if (ip && ipLocation) {
+        cards.push({
+            title: 'Connection Info',
+            icon: <Globe className="h-5 w-5 text-muted-foreground" />,
+            data: [
+                { key: 'IP Address', value: ip.value },
+                { key: 'City', value: ipLocation.value?.city?.name },
+                { key: 'Country', value: ipLocation.value?.country?.name },
+                { key: 'Timezone', value: ipLocation.value?.timezone },
+            ],
+        });
+    }
+    cards.push({
+      title: 'Basic Information',
+      icon: <User className="h-5 w-5 text-muted-foreground" />,
+      data: [
+        { key: 'User Agent', value: userAgent?.value },
+        { key: 'Platform', value: platform?.value },
+      ],
+    });
+    cards.push({
+      title: 'Display',
+      icon: <Monitor className="h-5 w-5 text-muted-foreground" />,
+      data: [
+        { key: 'Resolution', value: screenResolution?.value ? `${screenResolution.value[0]}x${screenResolution.value[1]}` : 'N/A' },
+        { key: 'Color Depth', value: colorDepth?.value ? `${colorDepth.value} bit` : 'N/A' },
+      ],
+    });
+    cards.push({
+      title: 'Hardware',
+      icon: <Cpu className="h-5 w-5 text-muted-foreground" />,
+      data: [
+        { key: 'CPU Cores', value: hardwareConcurrency?.value ?? 'N/A' },
+        { key: 'Device Memory', value: deviceMemory?.value ? `${deviceMemory.value} GB` : 'N/A' },
+      ],
+    });
+    cards.push({
+      title: 'Localization',
+      icon: <Globe className="h-5 w-5 text-muted-foreground" />,
+      data: [
+        { key: 'Timezone', value: timezone?.value },
+        { key: 'Languages', value: languages?.value?.join(', ') },
+      ],
+    });
+    if (canvas) {
+      cards.push({
         title: 'Canvas Fingerprint',
         icon: <Palette className="h-5 w-5 text-muted-foreground" />,
         data: [
-          { key: 'Geometry', value: fingerprintData.canvas?.value?.geometry?.substring(0, 40) + '...' },
-          { key: 'Text', value: fingerprintData.canvas?.value?.text?.substring(0, 40) + '...' },
+          { key: 'Geometry Hash', value: canvas.value?.geometry?.substring(0, 40) + '...' },
+          { key: 'Text Hash', value: canvas.value?.text?.substring(0, 40) + '...' },
         ],
-      },
-    ];
+      });
+    }
+    if (webgl) {
+      cards.push({
+        title: 'WebGL Information',
+        icon: <Fingerprint className="h-5 w-5 text-muted-foreground" />,
+        data: [
+          { key: 'Vendor', value: webgl.value?.vendor },
+          { key: 'Renderer', value: webgl.value?.renderer },
+          { key: 'Version', value: webgl.value?.version },
+        ],
+      });
+    }
+    if (fonts) {
+      cards.push({
+        title: 'Fonts',
+        icon: <Type className="h-5 w-5 text-muted-foreground" />,
+        data: [
+          { key: 'Detected Fonts', value: fonts.value?.length },
+          { key: 'First 5 Fonts', value: fonts.value?.slice(0, 5).join(', ') + '...' },
+        ],
+      });
+    }
+    if (plugins) {
+      cards.push({
+        title: 'Browser Plugins',
+        icon: <Puzzle className="h-5 w-5 text-muted-foreground" />,
+        data: [
+          { key: 'Plugin Count', value: plugins.value?.length },
+          { key: 'Plugins', value: plugins.value?.map(p => p.name).join(', ') },
+        ],
+      });
+    }
+    cards.push({
+      title: 'Storage',
+      icon: <Database className="h-5 w-5 text-muted-foreground" />,
+      data: [
+        { key: 'Cookies Enabled', value: String(cookiesEnabled?.value) },
+        { key: 'Local Storage', value: String(localStorage?.value) },
+        { key: 'Session Storage', value: String(sessionStorage?.value) },
+        { key: 'IndexedDB', value: String(indexedDB?.value) },
+        { key: 'Open Database', value: String(openDatabase?.value) },
+      ],
+    });
+    return cards;
   }, [fingerprintData]);
   if (!visitorId || !fingerprintData) return null;
   return (
