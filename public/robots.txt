@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://v1-digital-echo-qdyv16sftvocsrl_qi62w.build-preview.cloudflare.dev/sitemap.xml
+Sitemap: https://4b5dde09-digital-echo-qdyv16sftvocsrl_qi62w.workers.dev/sitemap.xml

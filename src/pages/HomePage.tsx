@@ -118,6 +118,14 @@ function ResultsDashboard() {
     return Math.min(99.99, 85 + (dataPoints / 50) * 14);
   }, [fingerprintData]);
   
+  const rarityNumber = React.useMemo(() => {
+    // If 99.9% unique, then 1 in 1000 people have same fingerprint
+    // If 99.99% unique, then 1 in 10,000
+    // Formula: 1 / (1 - uniqueness/100)
+    const uniquenessFraction = uniquenessScore / 100;
+    return Math.floor(1 / (1 - uniquenessFraction));
+  }, [uniquenessScore]);
+  
   const handleCopy = () => {
     if (visitorId) {
       navigator.clipboard.writeText(visitorId);
@@ -298,7 +306,7 @@ function ResultsDashboard() {
           </div>
           <div className="bg-black/40 border border-primary/20 px-4 py-2 rounded backdrop-blur-sm">
             <span className="text-muted-foreground">1 in</span>{' '}
-            <span className="text-primary font-bold">{Math.floor(Math.pow(10, 12)).toLocaleString()}</span>
+            <span className="text-primary font-bold">{rarityNumber.toLocaleString()}</span>
           </div>
         </div>
         
