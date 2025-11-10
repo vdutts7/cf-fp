@@ -1,148 +1,210 @@
-// Home page of the app, Currently a demo page for demonstration.
-// Please rewrite this file to implement your own logic. Do not replace or delete it, simply rewrite this HomePage.tsx file.
-import { useEffect } from 'react'
-import { Sparkles } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { ThemeToggle } from '@/components/ThemeToggle'
-import { Toaster, toast } from '@/components/ui/sonner'
-import { create } from 'zustand'
-import { useShallow } from 'zustand/react/shallow'
-import { AppLayout } from '@/components/layout/AppLayout'
-
-// Timer store: independent slice with a clear, minimal API, for demonstration
-type TimerState = {
-  isRunning: boolean;
-  elapsedMs: number;
-  start: () => void;
-  pause: () => void;
-  reset: () => void;
-  tick: (deltaMs: number) => void;
-}
-
-const useTimerStore = create<TimerState>((set) => ({
-  isRunning: false,
-  elapsedMs: 0,
-  start: () => set({ isRunning: true }),
-  pause: () => set({ isRunning: false }),
-  reset: () => set({ elapsedMs: 0, isRunning: false }),
-  tick: (deltaMs) => set((s) => ({ elapsedMs: s.elapsedMs + deltaMs })),
-}))
-
-// Counter store: separate slice to showcase multiple stores without coupling
-type CounterState = {
-  count: number;
-  inc: () => void;
-  reset: () => void;
-}
-
-const useCounterStore = create<CounterState>((set) => ({
-  count: 0,
-  inc: () => set((s) => ({ count: s.count + 1 })),
-  reset: () => set({ count: 0 }),
-}))
-
-function formatDuration(ms: number): string {
-  const total = Math.max(0, Math.floor(ms / 1000))
-  const m = Math.floor(total / 60)
-  const s = total % 60
-  return `${m}:${s.toString().padStart(2, '0')}`
-}
-
-export function HomePage() {
-  // Select only what is needed to avoid unnecessary re-renders
-  const { isRunning, elapsedMs } = useTimerStore(
-    useShallow((s) => ({ isRunning: s.isRunning, elapsedMs: s.elapsedMs })),
-  )
-  const start = useTimerStore((s) => s.start)
-  const pause = useTimerStore((s) => s.pause)
-  const resetTimer = useTimerStore((s) => s.reset)
-  const count = useCounterStore((s) => s.count)
-  const inc = useCounterStore((s) => s.inc)
-  const resetCount = useCounterStore((s) => s.reset)
-
-  // Drive the timer only while running; avoid update-depth issues with a scoped RAF
-  useEffect(() => {
-    if (!isRunning) return
-    let raf = 0
-    let last = performance.now()
-    const loop = () => {
-      const now = performance.now()
-      const delta = now - last
-      last = now
-      // Read store API directly to keep effect deps minimal and stable
-      useTimerStore.getState().tick(delta)
-      raf = requestAnimationFrame(loop)
-    }
-    raf = requestAnimationFrame(loop)
-    return () => cancelAnimationFrame(raf)
-  }, [isRunning])
-
-  const onPleaseWait = () => {
-    inc()
-    if (!isRunning) {
-      start()
-      toast.success('Building your app…', {
-        description: 'Hang tight, we\'re setting everything up.',
-      })
-    } else {
-      pause()
-      toast.info('Taking a short pause', {
-        description: 'We\'ll continue shortly.',
-      })
-    }
-  }
-
-  const formatted = formatDuration(elapsedMs)
-
+import React, { useMemo } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  Copy,
+  Check,
+  ServerCrash,
+  User,
+  Monitor,
+  Palette,
+  Cpu,
+  Globe,
+} from 'lucide-react';
+import { useFingerprint } from '@/hooks/useFingerprint';
+import { useFingerprintStore } from '@/store/fingerprintStore';
+import { FingerprintIcon } from '@/components/FingerprintIcon';
+import { Progress } from '@/components/ui/progress';
+import { Button } from '@/components/ui/button';
+import { Toaster, toast } from 'sonner';
+import { InfoCard } from '@/components/InfoCard';
+import { cn } from '@/lib/utils';
+import type { FingerprintData } from '@/lib/types';
+const MatrixBackground = React.memo(() => {
+  const chars = '0123456789ABCDEF';
+  const columns = Array(50).fill(0);
   return (
-    <AppLayout>
-      <div className="min-h-screen flex flex-col items-center justify-center bg-background text-foreground p-4 overflow-hidden relative">
-        <ThemeToggle />
-        <div className="absolute inset-0 bg-gradient-rainbow opacity-10 dark:opacity-20 pointer-events-none" />
-        <div className="text-center space-y-8 relative z-10 animate-fade-in">
-          <div className="flex justify-center">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-primary flex items-center justify-center shadow-primary floating">
-              <Sparkles className="w-8 h-8 text-white rotating" />
-            </div>
+    <div className="absolute inset-0 overflow-hidden z-0">
+      <div className="flex justify-between">
+        {columns.map((_, i) => (
+          <div
+            key={i}
+            className="text-primary/20 font-mono text-xs"
+            style={{
+              animation: `matrix 15s linear infinite`,
+              animationDelay: `${Math.random() * -15}s`,
+            }}
+          >
+            {Array(50)
+              .fill(0)
+              .map((__, j) => (
+                <div key={j}>{chars[Math.floor(Math.random() * chars.length)]}</div>
+              ))}
           </div>
-          <h1 className="text-5xl md:text-7xl font-display font-bold text-balance leading-tight">
-            Creating your <span className="text-gradient">app</span>
-          </h1>
-          <p className="text-lg md:text-xl text-muted-foreground max-w-xl mx-auto text-pretty">
-            Your application would be ready soon.
-          </p>
-          <div className="flex justify-center gap-4">
-            <Button 
-              size="lg"
-              onClick={onPleaseWait}
-              className="btn-gradient px-8 py-4 text-lg font-semibold hover:-translate-y-0.5 transition-all duration-200"
-              aria-live="polite"
-            >
-              Please Wait
-            </Button>
-          </div>
-          <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground">
-            <div>
-              Time elapsed: <span className="font-medium tabular-nums text-foreground">{formatted}</span>
-            </div>
-            <div>
-              Coins: <span className="font-medium tabular-nums text-foreground">{count}</span>
-            </div>
-          </div>
-          <div className="flex justify-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => { resetTimer(); resetCount(); toast('Reset complete') }}>
-              Reset
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => { inc(); toast('Coin added') }}>
-              Add Coin
-            </Button>
-          </div>
-        </div>
-        <footer className="absolute bottom-8 text-center text-muted-foreground/80">
-          <p>Powered by Cloudflare</p>
-        </footer>
-        <Toaster richColors closeButton />
+        ))}
       </div>
-    </AppLayout>
-  )
+    </div>
+  );
+});
+function LoadingScreen() {
+  const progress = useFingerprintStore((s) => s.progress);
+  const progressText = useFingerprintStore((s) => s.progressText);
+  return (
+    <motion.div
+      key="loader"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.5 }}
+      className="w-full h-full flex flex-col items-center justify-center space-y-6 relative"
+    >
+      <MatrixBackground />
+      <div className="relative z-10 flex flex-col items-center justify-center space-y-6 text-center">
+        <FingerprintIcon className="w-20 h-20 text-primary" />
+        <div className="space-y-2">
+          <h1 className="text-3xl font-display text-foreground">
+            Scanning Your Digital Echo
+          </h1>
+          <p className="text-muted-foreground">
+            Analyzing browser and device characteristics...
+          </p>
+        </div>
+        <div className="w-64 space-y-2">
+          <Progress value={progress} className="h-2" />
+          <p className="text-xs text-primary font-mono h-4">{progressText}</p>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+function ResultsDashboard() {
+  const visitorId = useFingerprintStore((s) => s.visitorId);
+  const fingerprintData = useFingerprintStore((s) => s.fingerprintData);
+  const [isCopied, setIsCopied] = React.useState(false);
+  const handleCopy = () => {
+    if (visitorId) {
+      navigator.clipboard.writeText(visitorId);
+      setIsCopied(true);
+      toast.success('Fingerprint hash copied to clipboard!');
+      setTimeout(() => setIsCopied(false), 2000);
+    }
+  };
+  const cardData = useMemo(() => {
+    if (!fingerprintData) return [];
+    const { userAgent, platform, screenResolution, colorDepth, deviceMemory, hardwareConcurrency, timezone, languages } = fingerprintData;
+    return [
+      {
+        title: 'Basic Information',
+        icon: <User className="h-5 w-5 text-muted-foreground" />,
+        data: [
+          { key: 'User Agent', value: userAgent.value },
+          { key: 'Platform', value: platform.value },
+        ],
+      },
+      {
+        title: 'Display',
+        icon: <Monitor className="h-5 w-5 text-muted-foreground" />,
+        data: [
+          { key: 'Resolution', value: `${screenResolution.value[0]}x${screenResolution.value[1]}` },
+          { key: 'Color Depth', value: `${colorDepth.value} bit` },
+        ],
+      },
+      {
+        title: 'Hardware',
+        icon: <Cpu className="h-5 w-5 text-muted-foreground" />,
+        data: [
+          { key: 'CPU Cores', value: hardwareConcurrency.value },
+          { key: 'Device Memory', value: `${deviceMemory.value} GB` },
+        ],
+      },
+      {
+        title: 'Localization',
+        icon: <Globe className="h-5 w-5 text-muted-foreground" />,
+        data: [
+          { key: 'Timezone', value: timezone.value },
+          { key: 'Languages', value: languages.value.join(', ') },
+        ],
+      },
+      {
+        title: 'Canvas Fingerprint',
+        icon: <Palette className="h-5 w-5 text-muted-foreground" />,
+        data: [
+          { key: 'Geometry', value: fingerprintData.canvas.value.geometry.substring(0, 40) + '...' },
+          { key: 'Text', value: fingerprintData.canvas.value.text.substring(0, 40) + '...' },
+        ],
+      },
+    ];
+  }, [fingerprintData]);
+  if (!visitorId || !fingerprintData) return null;
+  return (
+    <motion.div
+      key="results"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: 0.2 }}
+      className="w-full"
+    >
+      <div className="text-center space-y-4 mb-12">
+        <h1 className="text-4xl md:text-5xl font-display text-foreground">
+          Your Digital Fingerprint
+        </h1>
+        <div className="flex items-center justify-center gap-2 bg-secondary p-3 rounded-lg max-w-xl mx-auto">
+          <p className="font-mono text-primary text-sm md:text-base break-all">{visitorId}</p>
+          <Button variant="ghost" size="icon" onClick={handleCopy}>
+            {isCopied ? (
+              <Check className="h-5 w-5 text-green-500" />
+            ) : (
+              <Copy className="h-5 w-5 text-muted-foreground" />
+            )}
+          </Button>
+        </div>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {cardData.map((card) => (
+          <InfoCard key={card.title} {...card} />
+        ))}
+      </div>
+    </motion.div>
+  );
+}
+function ErrorState() {
+    const error = useFingerprintStore((s) => s.error);
+    return (
+        <motion.div
+            key="error"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="text-center space-y-4 text-destructive"
+        >
+            <ServerCrash className="h-16 w-16 mx-auto" />
+            <h2 className="text-2xl font-display">Scan Failed</h2>
+            <p className="text-muted-foreground max-w-md mx-auto">
+                We couldn't generate your digital fingerprint. This might be due to strict privacy settings or a browser extension blocking the scan.
+            </p>
+            <p className="font-mono text-xs bg-secondary p-2 rounded">{error}</p>
+        </motion.div>
+    );
+}
+export function HomePage() {
+  useFingerprint();
+  const status = useFingerprintStore((s) => s.status);
+  return (
+    <div className={cn(
+      "min-h-screen w-full bg-background text-foreground transition-colors duration-500",
+      "flex items-center justify-center"
+    )}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+        <div className="py-8 md:py-10 lg:py-12">
+          <AnimatePresence mode="wait">
+            {status === 'loading' && <LoadingScreen />}
+            {status === 'complete' && <ResultsDashboard />}
+            {status === 'error' && <ErrorState />}
+          </AnimatePresence>
+        </div>
+      </div>
+      <footer className="absolute bottom-4 text-center text-xs text-muted-foreground/50">
+        <p>Built with ❤️ at Cloudflare</p>
+      </footer>
+      <Toaster richColors theme="dark" />
+    </div>
+  );
 }
