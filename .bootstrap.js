@@ -78,7 +78,8 @@ function updateWranglerJsonc() {
 
 function runSetupCommands() {
     const commands = [
-    "bun add @fingerprintjs/fingerprintjs@^4.4.1"
+    "bun add @fingerprintjs/fingerprintjs@^4.4.1",
+    "bun install @fingerprintjs/fingerprintjs"
 ];
     
     if (commands.length === 0) {
