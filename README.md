@@ -2,7 +2,7 @@
 
 A visually striking, single-page application that performs in-depth browser fingerprinting and displays the results in a clean, minimalist, dark-themed dashboard.
 
-[cloudflarebutton]
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/vdutts7/cf-fp)
 
 ## About The Project
 
@@ -98,7 +98,7 @@ Wrangler will build and deploy your application. After deployment, you will rece
 
 You can also deploy this project to Cloudflare with a single click.
 
-[cloudflarebutton]
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/vdutts7/cf-fp)
 
 ## Disclaimer
 
